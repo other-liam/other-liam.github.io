@@ -280,12 +280,3 @@ $("#btn-undo").click(function() {
   saveAs(blob, filename + ".cmd");
   document.getElementById('result').innerHTML = outputUndoArray;
 });
-
-if (window.clipboardData) {
-    $('#editor').bind('paste', function (e) {
-        var clipped = window.clipboardData.getData('Text');
-        clipped = clipped.replace(/(\r\n|\n|\r)/gm, " "); //replace newlines with spaces
-        $(this).val(clipped);
-        return false; //cancel the pasting event
-    });
-}
