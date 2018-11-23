@@ -278,21 +278,3 @@ $("#btn-undo").click(function() {
   saveAs(blob, filename + ".cmd");
   document.getElementById('result').innerHTML = outputUndoArray;
 });
-
-function handlePaste (e) {
-    var clipboardData, pastedData;
-
-    // Stop data actually being pasted into input field
-    e.stopPropagation();
-    e.preventDefault();
-
-    // Get pasted data via clipboard API
-    clipboardData = e.clipboardData || window.clipboardData;
-    pastedData = clipboardData.getData('Text');
-
-    // Remove new line characters
-    alert(pastedData);
-    var res = pastedData.replace(/\r?\n|\r/g, );
-}
-
-document.getElementById('editableDiv').addEventListener('paste', handlePaste);
