@@ -280,3 +280,7 @@ $("#btn-undo").click(function() {
   saveAs(blob, filename + ".cmd");
   document.getElementById('result').innerHTML = outputUndoArray;
 });
+
+ if ($.browser.msie) {
+    alert("MSIE DETECTED")
+ }
