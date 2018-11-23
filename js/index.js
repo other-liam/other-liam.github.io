@@ -4,6 +4,9 @@ $('.message a').click(function(){
 
 //LIST OF VARIABLES I'LL NEED
 
+//CLIPBOARD.JS REQUIREMENT
+//new ClipboardJS('.btn');
+
 //CUT BACK REALTIME SHIFT TO 2:00 - 17:00, ADD PRMT3 PROPERTY
 var rtShiftCommand = 'realtimeShiftCommand -r"';
 var rtRegion = '" -d"AUSQLD ';
@@ -15,13 +18,13 @@ var calDateChange = '" -d"';
 var calShiftOneChange = '" -s"AUSQLD,';
 var shiftOneStartTime = '';
 var shiftOneEndTime = '';
-var endQuote = '"';
+var endAdjustment = '" -u"0"'
 
 //CREATE SHIFT 2 AS 17:00 - 20:00, ADD PRMT3 + NIGHT PROPERTIES
 var calShiftTwoChange = '" -n"2" -s"AUSQLD,';
 var shiftTwoStartTime = '';
 var shiftTwoEndTime = '';
-var calPermits = '" -c"NIGHT SHIFT" -H"1" -!"NIGHT,PRMT3"';
+var calPermits = '" -u"0" -c"NIGHT SHIFT" -H"1" -!"NIGHT,PRMT3"';
 
 //RE-USE ON
 var reuse = 'vc -v"';
@@ -103,10 +106,13 @@ if (dayName == 'Monday') {
 $("#btn-save").click(function() {
   
   var unformattedTruckList = $("#input-truckList").val();
-  var truckArray = unformattedTruckList.split(";");
+  var truckArray = unformattedTruckList.split(" ");
+  for(var i=0;i<truckArray.length;i++){
+    truckArray[i]="PCA"+truckArray[i];
+  }
   
   //CUT BACK REALTIME SHIFT
-  var arrayOfTrucksForRealtime = unformattedTruckList.split(";");
+  var arrayOfTrucksForRealtime = truckArray.slice(0);
   for (var i = 0; i < arrayOfTrucksForRealtime.length; i++) {
     arrayOfTrucksForRealtime[i] =
       rtShiftCommand +
@@ -119,7 +125,7 @@ $("#btn-save").click(function() {
   var listOfRealtimeCutbackCommands = arrayOfTrucksForRealtime.join("\r\n");
   
   //CUT BACK SHIFT 1
-  var arrayOfTrucksForShiftOne = unformattedTruckList.split(";");
+  var arrayOfTrucksForShiftOne = truckArray.slice(0);
   for (var i = 0; i < arrayOfTrucksForShiftOne.length; i++) {
     arrayOfTrucksForShiftOne[i] =
       calChange +
@@ -130,13 +136,13 @@ $("#btn-save").click(function() {
       shiftOneStartTime +
       ',' +
       shiftOneEndTime +
-      endQuote;
+      endAdjustment;
   }
   
   var listOfShiftOneChangeCommands = arrayOfTrucksForShiftOne.join("\r\n");
   
   //CREATE SHIFT 2
-  var arrayOfTrucksForShiftTwo = unformattedTruckList.split(";");
+  var arrayOfTrucksForShiftTwo = truckArray.slice(0);
   for (var i = 0; i < arrayOfTrucksForShiftTwo.length; i++) {
     arrayOfTrucksForShiftTwo[i] =
       calChange +
@@ -153,7 +159,7 @@ $("#btn-save").click(function() {
   var listOfShiftTwoCommands = arrayOfTrucksForShiftTwo.join("\r\n");
   
   //RE-USE ON
-  var arrayOfTrucksForReuseOn = unformattedTruckList.split(";");
+  var arrayOfTrucksForReuseOn = truckArray.slice(0);
   for (var i = 0; i < arrayOfTrucksForReuseOn.length; i++) {
     arrayOfTrucksForReuseOn[i] =
       reuse +
@@ -164,7 +170,7 @@ $("#btn-save").click(function() {
   var listOfReuseOnCommands = arrayOfTrucksForReuseOn.join("\r\n");
   
   //RE-USE OFF
-  var arrayOfTrucksForReuseOff = unformattedTruckList.split(";");
+  var arrayOfTrucksForReuseOff = truckArray.slice(0);
   for (var i = 0; i < arrayOfTrucksForReuseOff.length; i++) {
     arrayOfTrucksForReuseOff[i] =
       reuse +
@@ -185,16 +191,21 @@ $("#btn-save").click(function() {
   var filename = "Apply night shift for " + today;
   var blob = new Blob([outputArray], { type: "cmd" });
   saveAs(blob, filename + ".cmd");
-  document.getElementById('result').innerHTML = outputArray;
-});
+  //document.getElementById('result').innerHTML = outputArray;
+  
+  //OUTPUT SECTION
+  document.getElementById('result').innerHTML = outputArray;});
 
 $("#btn-undo").click(function() {
   
   var unformattedTruckList = $("#input-truckList").val();
-  var truckArray = unformattedTruckList.split(";");
+  var truckArray = unformattedTruckList.split(" ");
+  for(var i=0;i<truckArray.length;i++){
+    truckArray[i]="PCA"+truckArray[i];
+  }
   
   //UNDO CUT BACK REALTIME SHIFT
-  var undoArrayOfTrucksForRealtime = unformattedTruckList.split(";");
+  var undoArrayOfTrucksForRealtime = truckArray.slice(0);
   for (var i = 0; i < undoArrayOfTrucksForRealtime.length; i++) {
     undoArrayOfTrucksForRealtime[i] =
       rtShiftCommand +
@@ -207,7 +218,7 @@ $("#btn-undo").click(function() {
   var listOfUndoRealtimeCutbackCommands = undoArrayOfTrucksForRealtime.join("\r\n");
   
   //CLEAR 2ND SHIFT
-  var undoArrayOfSecondShifts = unformattedTruckList.split(";");
+  var undoArrayOfSecondShifts = truckArray.slice(0);
   for (var i = 0; i < undoArrayOfSecondShifts.length; i++) {
     undoArrayOfSecondShifts[i] =
       calUndo +
@@ -220,7 +231,7 @@ $("#btn-undo").click(function() {
   var listOfUndoSecondShiftCommands = undoArrayOfSecondShifts.join("\r\n");
   
   //RESEST 1ST SHIFT
-  var undoArrayOfFirstShifts = unformattedTruckList.split(";");
+  var undoArrayOfFirstShifts = truckArray.slice(0);
   for (var i = 0; i < undoArrayOfFirstShifts.length; i++) {
     undoArrayOfFirstShifts[i] =
       calUndo +
@@ -233,7 +244,7 @@ $("#btn-undo").click(function() {
   var listOfUndoFirstShiftCommands = undoArrayOfFirstShifts.join("\r\n");
   
   //RE-USE ON
-  var arrayOfTrucksForReuseOn = unformattedTruckList.split(";");
+  var arrayOfTrucksForReuseOn = truckArray.slice(0);
   for (var i = 0; i < arrayOfTrucksForReuseOn.length; i++) {
     arrayOfTrucksForReuseOn[i] =
       reuse +
@@ -244,7 +255,7 @@ $("#btn-undo").click(function() {
   var listOfReuseOnCommands = arrayOfTrucksForReuseOn.join("\r\n");
   
   //RE-USE OFF
-  var arrayOfTrucksForReuseOff = unformattedTruckList.split(";");
+  var arrayOfTrucksForReuseOff = truckArray.slice(0);
   for (var i = 0; i < arrayOfTrucksForReuseOff.length; i++) {
     arrayOfTrucksForReuseOff[i] =
       reuse +
