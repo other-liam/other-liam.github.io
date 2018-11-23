@@ -219,7 +219,9 @@ $("#btn-undo").click(function() {
   
   //CLEAR 2ND SHIFT
   var undoArrayOfSecondShifts = truckArray.slice(0);
-  for (var i = 0; i < undoArrayOfSecondShifts.length; i++) {
+
+   
+   for (var i = 0; i < undoArrayOfSecondShifts.length; i++) {
     undoArrayOfSecondShifts[i] =
       calUndo +
       undoArrayOfSecondShifts[i] +
@@ -278,3 +280,12 @@ $("#btn-undo").click(function() {
   saveAs(blob, filename + ".cmd");
   document.getElementById('result').innerHTML = outputUndoArray;
 });
+
+if (window.clipboardData) {
+    $('#editor').bind('paste', function (e) {
+        var clipped = window.clipboardData.getData('Text');
+        clipped = clipped.replace(/(\r\n|\n|\r)/gm, " "); //replace newlines with spaces
+        $(this).val(clipped);
+        return false; //cancel the pasting event
+    });
+}
