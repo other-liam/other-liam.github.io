@@ -219,8 +219,6 @@ $("#btn-undo").click(function() {
   
   //CLEAR 2ND SHIFT
   var undoArrayOfSecondShifts = truckArray.slice(0);
-
-   
    for (var i = 0; i < undoArrayOfSecondShifts.length; i++) {
     undoArrayOfSecondShifts[i] =
       calUndo +
@@ -281,7 +279,20 @@ $("#btn-undo").click(function() {
   document.getElementById('result').innerHTML = outputUndoArray;
 });
 
-if (window.clipboardData) {
-    alert("YEP")
-   else alert("NUP")
+function handlePaste (e) {
+    var clipboardData, pastedData;
+
+    // Stop data actually being pasted into input field
+    e.stopPropagation();
+    e.preventDefault();
+
+    // Get pasted data via clipboard API
+    clipboardData = e.clipboardData || window.clipboardData;
+    pastedData = clipboardData.getData('Text');
+
+    // Remove new line characters
+    alert(pastedData);
+    var res = pastedData.replace(/\r?\n|\r/g, );
 }
+
+document.getElementById('editableDiv').addEventListener('paste', handlePaste);
