@@ -213,6 +213,7 @@ $("#btn-undo").click(function() {
       rtRegion +
       today +
       rtUndo;
+
   }
   
   var listOfUndoRealtimeCutbackCommands = undoArrayOfTrucksForRealtime.join("\r\n");
@@ -280,3 +281,7 @@ $("#btn-undo").click(function() {
   saveAs(blob, filename + ".cmd");
   document.getElementById('result').innerHTML = outputUndoArray;
 });
+
+if (window.clipboardData) {
+    alert("YEP")
+}
