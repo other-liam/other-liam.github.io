@@ -2,11 +2,14 @@ $('.message a').click(function(){
    $('form').animate({height: "toggle", opacity: "toggle"}, "slow");
 });
 
-//LIST OF VARIABLES I'LL NEED
+//SHIFT TIMES
+var shiftOneStartTime = 200; //can't use 0200 because JS hates leading 0s
+var shiftOneEndTime = 1700;
+var shiftTwoStartTime = 1700;
+var shiftTwoEndTime = 2000;
+var numberOfSecondsInDay = 60 * 60 * 24; //Tesys sets 12 AM Sunday as reference point
 
-//CLIPBOARD.JS REQUIREMENT
-//new ClipboardJS('.btn');
-
+//TESYS COMMANDS
 //CUT BACK REALTIME SHIFT TO 2:00 - 17:00, ADD PRMT3 PROPERTY
 var rtShiftCommand = 'realtimeShiftCommand -r"';
 var rtRegion = '" -d"AUSQLD ';
@@ -16,14 +19,10 @@ var rtCutbackAndPermit = '" -R"AUSQLD 2:00 -AUSQLD 17:00" -!"PRMT3"';
 var calChange = 'resCalendar  -a"AddItem" -r"';
 var calDateChange = '" -d"';
 var calShiftOneChange = '" -s"AUSQLD,';
-var shiftOneStartTime = '';
-var shiftOneEndTime = '';
 var endAdjustment = '" -u"0"'
 
 //CREATE SHIFT 2 AS 17:00 - 20:00, ADD PRMT3 + NIGHT PROPERTIES
 var calShiftTwoChange = '" -n"2" -s"AUSQLD,';
-var shiftTwoStartTime = '';
-var shiftTwoEndTime = '';
 var calPermits = '" -u"0" -c"NIGHT SHIFT" -H"1" -!"NIGHT,PRMT3"';
 
 //RE-USE ON
@@ -39,9 +38,9 @@ var calUndo = 'resCalendar  -a"UpdateItem" -r"'
 var calSecondShiftUndo = '" -n"2" -s"unset" -c"unset" -H"unset" -!"unset"'
 var calFirstShiftUndo = '" -n"1" -s"unset"'
 
-//SET UP FOR DATE MAGIC
-
+//DATE MAGIC
 var today = new Date();
+var dayNumber = today.getDay();
 var dd = today.getDate();
 var mm = today.getMonth() + 1;
 var yyyy = today.getFullYear();
@@ -50,61 +49,32 @@ if (dd < 10) { // if the date is any single digit
   dd = "0" + dd; // add a leading 0, so the day is always 2 digits long.
 }
 
-if (mm < 10) { // if the month is any single digit
-  mm = "0" + mm; // add a leading 0, so the day is always 2 digits long.
+if (mm < 10) {
+  mm = "0" + mm;
 }
 
 today = dd + "." + mm + "." + yyyy;
-
-function getDayName(dateStr, locale)
-{
-    var date = new Date(dateStr);
-    return date.toLocaleDateString(locale, { weekday: 'long' });        
-}
-
-var dateStr = Date();
-var day = getDayName(dateStr);
-
-var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-var d = new Date(dateStr);
-var dayName = days[d.getDay()];
-
 //END DATE MAGIC
 
-//SET UP FOR START TIME CALCULATION MAGIC
-if (dayName == 'Monday') {
-  var shiftOneStartTime = "93600";
-  var shiftOneEndTime = "147600";
-  var shiftTwoStartTime = "147600";
-  var shiftTwoEndTime = "158400";
-} else if (dayName == 'Tuesday') {
-  var shiftOneStartTime = "180000";
-  var shiftOneEndTime = "234000";
-  var shiftTwoStartTime = "234000";
-  var shiftTwoEndTime = "244800";
-} else if (dayName == 'Wednesday') {
-  var shiftOneStartTime = "266400";
-  var shiftOneEndTime = "320400";
-  var shiftTwoStartTime = "320400";
-  var shiftTwoEndTime = "331200";
-} else if (dayName == 'Thursday') {
-  var shiftOneStartTime = "352800";
-  var shiftOneEndTime = "406800";
-  var shiftTwoStartTime = "406800";
-  var shiftTwoEndTime = "417600";
-} else if (dayName == 'Friday') {
-  var shiftOneStartTime = "439200";
-  var shiftOneEndTime = "493200";
-  var shiftTwoStartTime = "493200";
-  var shiftTwoEndTime = "504000";
-} else {
-  console.log("NOT A NIGHTSHIFT-COMPATIBLE DAY");
+//START TIME CALCULATION MAGIC
+//Input a shift number, either 1 or 2, and return a two-item array of shift times.
+function calculateShiftTime(shiftNumber){
+  if (shiftNumber == 1) {
+    var timeArray = [(shiftOneStartTime * 36) + (numberOfSecondsInDay * dayNumber),
+                     (shiftOneEndTime * 36) + (numberOfSecondsInDay * dayNumber)]
+  }
+  else if (shiftNumber == 2) {
+    var timeArray = [(shiftTwoStartTime * 36) + (numberOfSecondsInDay * dayNumber),
+                     (shiftTwoEndTime * 36) + (numberOfSecondsInDay * dayNumber)]
+  }
+  else console.log("Invalid shift number!")
+  return timeArray
 }
 //END START TIME CALCULATION MAGIC
 
 //SAVE PRMT3 FILE BUTTON
 $("#btn-save").click(function() {
-  
+
   var unformattedTruckList = $("#input-truckList").val();
   var truckArray = unformattedTruckList.split(" ");
   for(var i=0;i<truckArray.length;i++){
@@ -133,9 +103,7 @@ $("#btn-save").click(function() {
       calDateChange +
       today +
       calShiftOneChange +
-      shiftOneStartTime +
-      ',' +
-      shiftOneEndTime +
+      calculateShiftTime(1) +
       endAdjustment;
   }
   
@@ -150,9 +118,7 @@ $("#btn-save").click(function() {
       calDateChange +
       today +
       calShiftTwoChange +
-      shiftTwoStartTime +
-      ',' +
-      shiftTwoEndTime +
+      calculateShiftTime(2) +
       calPermits;
   }
   
@@ -191,7 +157,6 @@ $("#btn-save").click(function() {
   var filename = "Apply night shift for " + today;
   var blob = new Blob([outputArray], { type: "cmd" });
   saveAs(blob, filename + ".cmd");
-  //document.getElementById('result').innerHTML = outputArray;
   
   //OUTPUT SECTION
   document.getElementById('result').innerHTML = outputArray;});
@@ -219,7 +184,7 @@ $("#btn-undo").click(function() {
   
   //CLEAR 2ND SHIFT
   var undoArrayOfSecondShifts = truckArray.slice(0);
-   for (var i = 0; i < undoArrayOfSecondShifts.length; i++) {
+  for (var i = 0; i < undoArrayOfSecondShifts.length; i++) {
     undoArrayOfSecondShifts[i] =
       calUndo +
       undoArrayOfSecondShifts[i] +
